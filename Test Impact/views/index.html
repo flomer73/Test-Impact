@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--><html lang="en"><!--<![endif]-->
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>App test from Impact</title>
+</head>
+
+<body>
+    <div style="text-align: center;">
+        <h2><input id="response" type="text" readonly style="text-align: center; width:400px;" value=""></h2>
+    </div>
+    <div style="position: fixed; bottom: 0; width: 100%; text-align: center;">
+        <h3><button id="sumbit" onclick="javascript:sendData();">Submit</button></h3>
+    </div>
+       
+
+
+<script type="text/javascript">
+var clicks = [];
+var response = '';
+
+var mouseClick = function(e) {
+    var x = e.clientX !== null ? e.clientX : -1;
+    var y = e.clientY !== null ? e.clientY: -1;
+    if ( x >= 0 && y >= 0) {
+        clicks.push([x, y]);
+    }
+};
+
+window.addEventListener('click', mouseClick, false);
+window.addEventListener('contextmenu', mouseClick, false);
+
+var toBase64 = function(value) {
+    return btoa(JSON.stringify(value));
+};
+ 
+var distance = function(a, b) {
+    if (a && b) {
+        if (a.length > 1 && b.length > 1) {
+            return Math.sqrt((b[1]-=a[1])*b[1] + (b[2]-=a[2])*b[2]);
+        }
+    }
+    return -1;
+};
+
+var triangleArea = function(points) {
+    var area = Math.abs(((points[0][0] * (points[1][1] - points[2][1])) +
+                         (points[1][0] * (points[2][1] - points[0][1])) +
+                         (points[2][0] * (points[0][1] - points[1][1])))/ 2.0);
+    return area;
+};
+
+var squareArea = function(points) {
+    var area = Math.abs(points[1][0] - points[0][0]) * 2;
+    return area;
+};
+
+var isIsosceles = function(points) {
+    dAB = distance(points[0], points[1]);
+    dBC = distance(points[0], points[2]);
+    dCA = distance(points[1], points[2]);
+    if ( dAB == dCA || dAB == dBC || dBC == dCA) {
+        alert('Isosceles!');
+        return 'isosceles';
+    }
+    alert('Just another triangle');
+    return 'other';
+};
+
+var sendData = function() {
+    var points = clicks.slice(0, clicks.length);
+    var pointsStr = toBase64(points);
+    var scr = document.createElement('script');
+    scr.id = '_scr';
+    if (points.length == 3) {
+        var area = triangleArea(points);
+        var type = isIsosceles(points);
+        /*scr.src = 'https://example.org/triangle';
+        -- OJO: No se la razón del lado del back-end --
+        Error de lectura XML: mal formado
+        Ubicación: https://example.org/triangle?area=2288&type=other&points=W1s1NjYsMTQyXSxbNTIyLDE4Nl0sWzU5OCwyMTRdXQ==
+        Número de línea 1, columna 1:
+        scr.src = scr.src +
+            '?area=' +
+            area +
+            '&type=' +
+            type +
+            '&points=' +
+            pointsStr;
+        scr.src = 'triangle';*/
+
+        // Solucion alternativa con Django
+        scr.src = 'triangle';
+        scr.src = scr.src + '/' + area + '/' + type + '/' + pointsStr;
+
+        document.body.appendChild(scr);
+        scr.onload = function() {
+            document.getElementById('response').value = response;
+            document.getElementById('_scr').outerHTML = '';
+            clicks.length = 0;
+        };    
+    }
+
+    if (points.length == 4) {
+        var area = squareArea(points);
+        // Solucion alternativa con Django
+        scr.src = 'square';
+        scr.src = scr.src + '/' + area + '/' + pointsStr;
+
+        document.body.appendChild(scr);
+        scr.onload = function() {
+            document.getElementById('response').value = response;
+            if (response == true) {
+                alert("Squared thoughts area: " + area);
+            }
+            document.getElementById('_scr').outerHTML = '';
+            clicks.length = 0;
+        };        
+    }
+
+    if (points.length != 4 && points.length != 3) {
+        var lastpPoint = points.length
+        alert('Distance: ' + Math.abs(points[0][0] - points[lastpPoint-1][0]));
+        clicks.length = 0;
+    }    
+    
+};
+
+
+
+
+
+</script>
+
+</body>
+
+</html>
+
+
